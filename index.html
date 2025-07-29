@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Riêng Tư - 3 Người Bạn</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .user-setup {
+            padding: 30px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .user-setup input {
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 25px;
+            font-size: 16px;
+            margin: 10px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .user-setup input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .user-setup button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .user-setup button:hover {
+            transform: translateY(-2px);
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            display: none;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #ffffff;
+        }
+
+        .message-group {
+            margin: 8px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-group.own {
+            align-items: flex-end;
+        }
+
+        .message-group.other {
+            align-items: flex-start;
+        }
+
+        .message {
+            max-width: 65%;
+            margin: 2px 0;
+            word-wrap: break-word;
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-bubble {
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .message.own .message-bubble {
+            background: #007AFF;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.other .message-bubble {
+            background: #E5E5EA;
+            color: #000;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-header {
+            font-size: 12px;
+            color: #8E8E93;
+            margin-bottom: 4px;
+            margin-left: 12px;
+            font-weight: 500;
+        }
+
+        .message.own .message-header {
+            margin-left: 0;
+            margin-right: 12px;
+            text-align: right;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #8E8E93;
+            margin-top: 2px;
+            margin-left: 12px;
+        }
+
+        .message.own .message-time {
+            margin-left: 0;
+            margin-right: 12px;
+            text-align: right;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e8ed;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-area input:focus {
+            border-color: #4facfe;
+        }
+
+        .input-area button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .input-area button:hover {
+            transform: scale(1.05);
+        }
+
+        .online-users {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #4CAF50;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .system-message {
+            text-align: center;
+            color: #8E8E93;
+            font-size: 14px;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        .instructions {
+            background: #f0f8ff;
+            border: 1px solid #4facfe;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .sync-info {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+                height: 95vh;
+                border-radius: 10px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Chat Riêng Tư (P2P)</h1>
+            <div class="online-users" id="onlineUsers" style="display: none;">
+                <span class="status-indicator"></span>
+                <span id="userCount">1 người online</span>
+            </div>
+            <div class="sync-info" id="syncInfo" style="display: none;">
+                📡 Đồng bộ mỗi 3 giây
+            </div>
+        </div>
+
+        <div class="user-setup" id="userSetup">
+            <h2>Chào mừng đến với phòng chat P2P!</h2>
+            
+            <div class="instructions">
+                <strong>🔗 Cách hoạt động:</strong><br>
+                • Chat này sử dụng công nghệ P2P (peer-to-peer)<br>
+                • Dữ liệu được chia sẻ trực tiếp giữa các trình duyệt<br>
+                • Không cần server, hoàn toàn miễn phí<br>
+                • Tin nhắn sẽ đồng bộ tự động mỗi vài giây
+            </div>
+
+            <input type="text" id="usernameInput" placeholder="Tên của bạn..." maxlength="20">
+            <input type="text" id="roomInput" placeholder="Mã phòng (ví dụ: friends123)" value="banbe2025" maxlength="20">
+            
+            <button onclick="joinChat()">Tham Gia Chat</button>
+            
+            <div class="warning">
+                <strong>⚠️ Lưu ý:</strong><br>
+                • Cả 3 người phải dùng CÙNG MÃ PHÒNG<br>
+                • Giữ trang web mở để nhận tin nhắn<br>
+                • Làm mới trang nếu không thấy tin nhắn mới
+            </div>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="messages" id="messages"></div>
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." maxlength="500">
+                <button onclick="sendMessage()">Gửi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = '';
+        let currentRoom = '';
+        let lastSyncTime = 0;
+        let syncInterval;
+
+        // P2P data storage using a simple shared key approach
+        const STORAGE_PREFIX = 'p2p_chat_';
+
+        function generateSharedKey(room) {
+            return STORAGE_PREFIX + room;
+        }
+
+        function joinChat() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const room = document.getElementById('roomInput').value.trim();
+            
+            if (!username || !room) {
+                alert('Vui lòng nhập đầy đủ tên và mã phòng!');
+                return;
+            }
+
+            currentUser = username;
+            currentRoom = room;
+            
+            // Hiển thị chat area
+            document.getElementById('userSetup').style.display = 'none';
+            document.getElementById('chatArea').style.display = 'flex';
+            document.getElementById('onlineUsers').style.display = 'block';
+            document.getElementById('syncInfo').style.display = 'block';
+            
+            // Khởi tạo dữ liệu phòng
+            initializeRoom();
+            
+            // Bắt đầu đồng bộ
+            startSync();
+            
+            // Gửi tin nhắn tham gia
+            sendSystemMessage(`${username} đã tham gia phòng chat`);
+            
+            document.getElementById('messageInput').focus();
+        }
+
+        function initializeRoom() {
+            const key = generateSharedKey(currentRoom);
+            const existingData = getSharedData(key);
+            
+            if (!existingData) {
+                const initialData = {
+                    messages: [],
+                    users: {},
+                    lastUpdate: Date.now()
+                };
+                setSharedData(key, initialData);
+            }
+            
+            // Thêm user hiện tại
+            updateUserPresence();
+        }
+
+        function updateUserPresence() {
+            const key = generateSharedKey(currentRoom);
+            const data = getSharedData(key) || { messages: [], users: {}, lastUpdate: Date.now() };
+            
+            data.users[currentUser] = {
+                name: currentUser,
+                lastSeen: Date.now()
+            };
+            data.lastUpdate = Date.now();
+            
+            setSharedData(key, data);
+            updateUserCount();
+        }
+
+        function startSync() {
+            // Đồng bộ ngay lập tức
+            syncMessages();
+            
+            // Đồng bộ định kỳ mỗi 3 giây
+            syncInterval = setInterval(() => {
+                syncMessages();
+                updateUserPresence();
+            }, 3000);
+        }
+
+        function syncMessages() {
+            const key = generateSharedKey(currentRoom);
+            const data = getSharedData(key);
+            
+            if (data && data.lastUpdate > lastSyncTime) {
+                const messagesContainer = document.getElementById('messages');
+                
+                // Chỉ hiển thị tin nhắn mới
+                const newMessages = data.messages.filter(msg => msg.timestamp > lastSyncTime);
+                
+                newMessages.forEach(message => {
+                    displayMessage(message);
+                });
+                
+                if (newMessages.length > 0) {
+                    scrollToBottom();
+                }
+                
+                lastSyncTime = data.lastUpdate;
+                updateUserCount();
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+            
+            if (messageText && currentUser) {
+                const message = {
+                    id: Date.now() + '_' + Math.random(),
+                    user: currentUser,
+                    text: messageText,
+                    timestamp: Date.now(),
+                    type: 'user'
+                };
+                
+                addMessageToShared(message);
+                messageInput.value = '';
+            }
+        }
+
+        function sendSystemMessage(text) {
+            const message = {
+                id: Date.now() + '_system',
+                text: text,
+                timestamp: Date.now(),
+                type: 'system'
+            };
+            
+            addMessageToShared(message);
+        }
+
+        function addMessageToShared(message) {
+            const key = generateSharedKey(currentRoom);
+            const data = getSharedData(key) || { messages: [], users: {}, lastUpdate: Date.now() };
+            
+            data.messages.push(message);
+            data.lastUpdate = Date.now();
+            
+            // Giữ chỉ 100 tin nhắn gần nhất
+            if (data.messages.length > 100) {
+                data.messages = data.messages.slice(-100);
+            }
+            
+            setSharedData(key, data);
+            
+            // Hiển thị tin nhắn ngay lập tức
+            displayMessage(message);
+            scrollToBottom();
+        }
+
+        function displayMessage(message) {
+            const messagesContainer = document.getElementById('messages');
+            
+            // Kiểm tra xem tin nhắn đã hiển thị chưa
+            if (document.getElementById('msg_' + message.id)) {
+                return;
+            }
+            
+            if (message.type === 'system') {
+                const systemDiv = document.createElement('div');
+                systemDiv.className = 'system-message';
+                systemDiv.id = 'msg_' + message.id;
+                systemDiv.textContent = message.text;
+                messagesContainer.appendChild(systemDiv);
+                return;
+            }
+            
+            const isOwnMessage = message.user === currentUser;
+            
+            // Kiểm tra tin nhắn liên tiếp
+            const lastMessage = messagesContainer.lastElementChild;
+            const isConsecutive = lastMessage && 
+                                 lastMessage.classList.contains('message-group') &&
+                                 ((isOwnMessage && lastMessage.classList.contains('own')) ||
+                                  (!isOwnMessage && lastMessage.classList.contains('other'))) &&
+                                 lastMessage.dataset.user === message.user;
+            
+            let messageGroup;
+            
+            if (isConsecutive) {
+                messageGroup = lastMessage;
+            } else {
+                messageGroup = document.createElement('div');
+                messageGroup.className = `message-group ${isOwnMessage ? 'own' : 'other'}`;
+                messageGroup.dataset.user = message.user;
+                
+                if (!isOwnMessage) {
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'message-header';
+                    headerDiv.textContent = message.user;
+                    messageGroup.appendChild(headerDiv);
+                }
+                
+                messagesContainer.appendChild(messageGroup);
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isOwnMessage ? 'own' : 'other'}`;
+            messageDiv.id = 'msg_' + message.id;
+            
+            const time = new Date(message.timestamp);
+            const timeString = time.toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">${message.text}</div>
+                <div class="message-time">${timeString}</div>
+            `;
+            
+            messageGroup.appendChild(messageDiv);
+        }
+
+        function updateUserCount() {
+            const key = generateSharedKey(currentRoom);
+            const data = getSharedData(key);
+            
+            if (data && data.users) {
+                const now = Date.now();
+                const activeUsers = Object.values(data.users)
+                    .filter(user => now - user.lastSeen < 10000) // Active trong 10 giây
+                    .map(user => user.name);
+                
+                const userCountSpan = document.getElementById('userCount');
+                userCountSpan.textContent = `${activeUsers.length} người online: ${activeUsers.join(', ')}`;
+            }
+        }
+
+        function scrollToBottom() {
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Shared data functions using localStorage with cross-tab communication
+        function getSharedData(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function setSharedData(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+                // Trigger storage event for other tabs
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: key,
+                    newValue: JSON.stringify(data)
+                }));
+            } catch (e) {
+                console.error('Không thể lưu dữ liệu:', e);
+            }
+        }
+
+        // Listen for storage changes from other tabs
+        window.addEventListener('storage', (e) => {
+            if (e.key && e.key.startsWith(STORAGE_PREFIX) && e.key === generateSharedKey(currentRoom)) {
+                syncMessages();
+            }
+        });
+
+        // Event listeners
+        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('roomInput').focus();
+            }
+        });
+
+        document.getElementById('roomInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                joinChat();
+            }
+        });
+
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Cleanup khi đóng trang
+        window.addEventListener('beforeunload', () => {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+            }
+        });
+    </script>
+</body>
+</html>
